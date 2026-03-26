@@ -1,0 +1,14 @@
+{
+    "model": "claude-sonnet-4-6",
+    "enableAllProjectMcpServers": true,
+    "enabledMcpjsonServers": [
+      "context7"
+    ],
+    "outputStyle": ".claude/output-styles/style.md",
+    "permissions": {
+      "allow": [
+        "mcp__context7__query-docs"
+      ]
+    }
+  }
+  
