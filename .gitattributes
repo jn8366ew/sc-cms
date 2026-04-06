@@ -1,0 +1,42 @@
+# 모든 텍스트 파일을 LF로 정규화 (저장소 기준)
+* text=auto eol=lf
+
+# 소스 코드
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+
+# 설정 / 마크업
+*.json  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.toml  text eol=lf
+*.md    text eol=lf
+*.mdx   text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.env   text eol=lf
+
+# Windows 전용 스크립트 — CRLF 필수
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# 바이너리 — 줄바꿈 변환 금지
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.svg   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.pdf   binary
+*.zip   binary
+*.tar   binary
+*.gz    binary

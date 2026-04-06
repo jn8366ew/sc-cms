@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm --version)",
-      "Bash(npx --version)"
+      "Bash(npx --version)",
+      "Bash(ls:*)",
+      "Bash(head -50 /c/Users/FAMILY/projs/sc-cms/docs/*)"
     ]
   }
 }
