@@ -1,2 +1,0 @@
-- [sc-cms 핵심 아키텍처 결정](project_sc_cms_architecture.md) — Notion API v5 제약, 구현 상태, 블록 렌더링 우선순위 (2026-03-31)
-- [sc-cms 미결 사항 및 가정](project_open_questions.md) — PRD 미결 질문 6건, 로드맵 수립 가정 6건 (2026-03-31)

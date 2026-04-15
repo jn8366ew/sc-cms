@@ -25,6 +25,10 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  // @react-pdf/renderer는 Node.js 네이티브 모듈(canvas 등)을 사용해
+  // webpack이 번들링하면 빌드 에러가 난다 — 번들링에서 제외
+  serverExternalPackages: ['@react-pdf/renderer'],
+
   async headers() {
     return [
       {

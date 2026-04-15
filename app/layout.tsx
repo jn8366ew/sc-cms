@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: '나만의 소울칼리버 블로그',
-    template: '%s | 나만의 소울칼리버 블로그',
+    default: '견적서',
+    template: '%s | 견적서',
   },
-  description: 'Notion CMS 기반 소울칼리버 자료 및 대전회고 블로그',
+  description: 'Notion 기반 견적서 조회 시스템',
 }
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   )

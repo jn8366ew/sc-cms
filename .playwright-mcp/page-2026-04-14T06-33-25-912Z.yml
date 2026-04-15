@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - paragraph [ref=e13]: "404"
+      - heading "견적서를 찾을 수 없습니다" [level=1] [ref=e14]
+      - paragraph [ref=e15]:
+        - text: 링크가 잘못되었거나 만료되었을 수 있습니다.
+        - text: 발행자에게 올바른 링크를 요청하세요.
+  - alert [ref=e16]

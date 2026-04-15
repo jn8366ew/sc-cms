@@ -1,0 +1,92 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "목록으로 돌아가기" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=e6]
+          - text: 목록
+        - button "PDF로 다운로드 (준비 중)" [disabled] [ref=e8]:
+          - img [ref=e9]
+          - text: PDF 다운로드
+      - article "견적서 INV-2026-001" [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - generic [ref=e15]:
+              - img [ref=e17]
+              - paragraph [ref=e21]: (주)스타트컴퍼니
+            - paragraph [ref=e22]: 사업자등록번호 123-45-67890
+            - generic [ref=e23]:
+              - generic [ref=e24]:
+                - term [ref=e25]: 주소
+                - definition [ref=e26]: 서울특별시 강남구 테헤란로 123, 4층
+              - generic [ref=e27]:
+                - term [ref=e28]: 전화
+                - definition [ref=e29]: 02-1234-5678
+              - generic [ref=e30]:
+                - term [ref=e31]: 이메일
+                - definition [ref=e32]: contact@startcompany.kr
+              - generic [ref=e33]:
+                - term [ref=e34]: 담당
+                - definition [ref=e35]: 홍길동
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - heading "견적서" [level=1] [ref=e38]
+              - generic [ref=e39]: 초안
+            - paragraph [ref=e40]: INV-2026-001
+        - separator [ref=e41]
+        - region "견적서 기본 정보" [ref=e42]:
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: 수신
+            - paragraph [ref=e45]: ABC귀중
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - term [ref=e49]: 견적서 번호
+              - definition [ref=e50]: INV-2026-001
+            - generic [ref=e51]:
+              - term [ref=e52]: 발행일
+              - definition [ref=e53]: 2026년 04월 10일
+            - generic [ref=e54]:
+              - term [ref=e55]: 유효기간
+              - definition [ref=e56]: 2026년 04월 10일
+        - separator [ref=e57]
+        - region "견적 항목" [ref=e58]:
+          - heading "견적 항목" [level=2] [ref=e60]
+          - table [ref=e62]:
+            - rowgroup [ref=e63]:
+              - row "품목명 수량 단가 금액" [ref=e64]:
+                - columnheader "품목명" [ref=e65]
+                - columnheader "수량" [ref=e66]
+                - columnheader "단가" [ref=e67]
+                - columnheader "금액" [ref=e68]
+            - rowgroup [ref=e69]:
+              - row "웹사이트 디자인 1 ₩3,000,000 ₩3,000,000" [ref=e70]:
+                - cell "웹사이트 디자인" [ref=e71]
+                - cell "1" [ref=e72]
+                - cell "₩3,000,000" [ref=e73]
+                - cell "₩3,000,000" [ref=e74]
+              - row "로고제작 2 ₩500,000 ₩1,000,000" [ref=e75]:
+                - cell "로고제작" [ref=e76]
+                - cell "2" [ref=e77]
+                - cell "₩500,000" [ref=e78]
+                - cell "₩1,000,000" [ref=e79]
+              - row "명함 100 ₩10,000 ₩1,000,000" [ref=e80]:
+                - cell "명함" [ref=e81]
+                - cell "100" [ref=e82]
+                - cell "₩10,000" [ref=e83]
+                - cell "₩1,000,000" [ref=e84]
+            - rowgroup [ref=e85]:
+              - row [ref=e86]:
+                - cell [ref=e87]
+              - row "* 부가세(VAT 10%) 별도 합계 금액 ₩0" [ref=e89]:
+                - cell "* 부가세(VAT 10%) 별도" [ref=e90]
+                - cell "합계 금액" [ref=e91]
+                - cell "₩0" [ref=e92]
+        - region "비고" [ref=e93]:
+          - generic [ref=e94]:
+            - img [ref=e95]
+            - heading "비고" [level=3] [ref=e98]
+          - paragraph [ref=e100]: 내용 없음
+        - paragraph [ref=e102]: 본 견적서는 2026년 04월 10일까지 유효합니다. 문의사항은 contact@startcompany.kr로 연락 주십시오.
+  - button "Open Next.js Dev Tools" [ref=e108] [cursor=pointer]:
+    - img [ref=e109]

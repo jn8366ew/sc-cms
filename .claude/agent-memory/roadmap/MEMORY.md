@@ -1,0 +1,2 @@
+- [sc-cms 핵심 아키텍처 결정](project_sc_cms_architecture.md) — Notion DB 스키마 확정(Relation DB), 구현 상태, 기술 제약사항 (2026-04-10)
+- [sc-cms 미결 사항 및 가정](project_open_questions.md) — Q1/R5 해결됨(Relation DB 확인), 미결 Q2-Q5, 가정 6건 (2026-04-10)

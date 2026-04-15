@@ -1,129 +1,145 @@
-import { Client } from '@notionhq/client'
+import { Client, APIResponseError, APIErrorCode } from '@notionhq/client'
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
-import type { NotionPost, NotionBlock } from '@/types/notion'
+import type { Invoice, InvoiceItem, InvoiceStatus } from '@/types/invoice'
+import { STATUS_MAP } from '@/types/invoice'
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 
 const notion = new Client({
-  auth: process.env.NOTION_TOKEN,
+  auth: process.env.NOTION_API_KEY,
 })
 
-const DATABASE_ID = process.env.NOTION_DATABASE_ID ?? ''
+// --- Property 파싱 헬퍼 ---
+// PageObjectResponse.properties는 복잡한 union 타입이므로
+// 각 타입별 헬퍼로 분리해 type narrowing을 명확히 한다.
 
-/**
- * Notion API v5 breaking change:
- * databases.query() 가 제거되었다. 대신 search() API + parent.database_id 필터로
- * 특정 데이터베이스의 페이지를 가져온다.
- *
- * 트레이드오프: search는 전체 워크스페이스를 대상으로 하므로 클라이언트 사이드에서
- * database_id로 한 번 더 필터링이 필요하다. 데이터가 많아지면 페이지네이션과
- * 함께 캐싱 전략을 검토해야 한다.
- */
-async function getPagesByDatabase(databaseId: string): Promise<PageObjectResponse[]> {
-  const results: PageObjectResponse[] = []
-  let cursor: string | undefined
-
-  do {
-    const response = await notion.search({
-      filter: { property: 'object', value: 'page' },
-      sort: { timestamp: 'last_edited_time', direction: 'descending' },
-      ...(cursor ? { start_cursor: cursor } : {}),
-      page_size: 100,
-    })
-
-    for (const item of response.results) {
-      if (
-        item.object === 'page' &&
-        'parent' in item &&
-        item.parent.type === 'database_id' &&
-        item.parent.database_id.replace(/-/g, '') === databaseId.replace(/-/g, '')
-      ) {
-        results.push(item as PageObjectResponse)
-      }
-    }
-
-    cursor = response.has_more && response.next_cursor ? response.next_cursor : undefined
-  } while (cursor)
-
-  return results
+function getTitle(props: PageObjectResponse['properties'], key: string): string {
+  const prop = props[key]
+  if (!prop || prop.type !== 'title') return ''
+  return prop.title.map((t) => t.plain_text).join('')
 }
 
-// Notion API 응답에서 NotionPost 타입으로 변환
-function toPost(page: PageObjectResponse): NotionPost {
-  const props = page.properties
+function getRichText(props: PageObjectResponse['properties'], key: string): string {
+  const prop = props[key]
+  if (!prop || prop.type !== 'rich_text') return ''
+  return prop.rich_text.map((t) => t.plain_text).join('')
+}
 
-  const titleProp = props['Title']
-  const title =
-    titleProp?.type === 'title'
-      ? titleProp.title.map((t) => ('plain_text' in t ? t.plain_text : '')).join('')
-      : ''
+function getDate(props: PageObjectResponse['properties'], key: string): string {
+  const prop = props[key]
+  if (!prop || prop.type !== 'date' || !prop.date) return ''
+  return prop.date.start
+}
 
-  const categoryProp = props['Category']
-  const category =
-    categoryProp?.type === 'select' && categoryProp.select ? categoryProp.select.name : ''
+function getStatus(props: PageObjectResponse['properties'], key: string): InvoiceStatus {
+  const prop = props[key]
+  if (!prop || prop.type !== 'status' || !prop.status) return 'draft'
+  return STATUS_MAP[prop.status.name] ?? 'draft'
+}
 
-  const tagsProp = props['Tags']
-  const tags =
-    tagsProp?.type === 'multi_select' ? tagsProp.multi_select.map((t) => t.name) : []
+function getRollupNumber(props: PageObjectResponse['properties'], key: string): number {
+  const prop = props[key]
+  if (!prop || prop.type !== 'rollup') return 0
+  const rollup = prop.rollup
+  // PartialRollupValueResponse는 number | date | array 세 가지
+  if (rollup.type !== 'number' || rollup.number === null) return 0
+  return rollup.number
+}
 
-  const publishedProp = props['Published']
-  const published =
-    publishedProp?.type === 'date' && publishedProp.date ? publishedProp.date.start : ''
+function getRelationIds(props: PageObjectResponse['properties'], key: string): string[] {
+  const prop = props[key]
+  if (!prop || prop.type !== 'relation') return []
+  return prop.relation.map((r) => r.id)
+}
 
-  const statusProp = props['Status']
-  const statusName =
-    statusProp?.type === 'select' && statusProp.select ? statusProp.select.name : ''
+function getNumber(props: PageObjectResponse['properties'], key: string): number {
+  const prop = props[key]
+  if (!prop || prop.type !== 'number' || prop.number === null) return 0
+  return prop.number
+}
 
-  return {
-    id: page.id,
-    title,
-    category,
-    tags,
-    published: published ?? '',
-    status: statusName === '발행됨' ? 'published' : 'draft',
-    slug: encodeURIComponent(title.toLowerCase().replace(/\s+/g, '-')),
+function getFormulaNumber(props: PageObjectResponse['properties'], key: string): number {
+  const prop = props[key]
+  if (!prop || prop.type !== 'formula') return 0
+  const formula = prop.formula
+  if (formula.type !== 'number' || formula.number === null) return 0
+  return formula.number
+}
+
+// --- Items DB 단건 조회 ---
+
+async function fetchInvoiceItem(pageId: string): Promise<InvoiceItem | null> {
+  try {
+    const page = await notion.pages.retrieve({ page_id: pageId })
+    // PartialPageObjectResponse에는 properties가 없다
+    if (page.object !== 'page' || !('properties' in page)) return null
+
+    const props = (page as PageObjectResponse).properties
+    return {
+      id: page.id,
+      name: getTitle(props, '항목명'),
+      unit_price: getNumber(props, '단가'),
+      quantity: getNumber(props, '수량'),
+      // 금액은 Notion Formula (단가 × 수량) — API가 계산 결과를 반환
+      amount: getFormulaNumber(props, '금액'),
+    }
+  } catch {
+    // 항목 페이지 조회 실패 시 해당 항목만 제외 (전체 실패 방지)
+    return null
   }
 }
 
-/**
- * 발행된 글 목록 조회 (최신 발행일순)
- */
-export async function getPosts(): Promise<NotionPost[]> {
-  const pages = await getPagesByDatabase(DATABASE_ID)
+// --- Invoices DB 단건 조회 ---
 
-  return pages
-    .map(toPost)
-    .filter((p) => p.status === 'published')
-    .sort((a, b) => {
-      if (!a.published) return 1
-      if (!b.published) return -1
-      return b.published.localeCompare(a.published)
-    })
+// Notion 페이지 ID는 32자 hex 또는 UUID 형식이어야 함
+const NOTION_ID_RE = /^[0-9a-f]{32}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// --- Notion API 직접 호출 (캐싱 레이어 없음) ---
+
+async function fetchInvoiceData(pageId: string): Promise<Invoice | null> {
+  if (!NOTION_ID_RE.test(pageId)) return null
+
+  try {
+    const page = await notion.pages.retrieve({ page_id: pageId })
+    if (page.object !== 'page' || !('properties' in page)) return null
+
+    const props = (page as PageObjectResponse).properties
+
+    // 항목은 Relation DB — 연결된 Item 페이지 ID 배열로 각 항목을 병렬 조회
+    const itemIds = getRelationIds(props, '항목')
+    const itemResults = await Promise.all(itemIds.map(fetchInvoiceItem))
+    const items = itemResults.filter((item): item is InvoiceItem => item !== null)
+
+    // Rollup(총금액)은 Formula 속성 집계 시 type:'array'를 반환해 0이 나올 수 있음
+    // 이미 items를 조회했으므로 여기서 직접 합산하는 것이 더 안전하다
+    const total_amount = items.reduce((sum, item) => sum + item.amount, 0)
+
+    return {
+      id: page.id,
+      invoice_number: getTitle(props, '견적서 번호'),
+      client_name: getRichText(props, '거래처명'),
+      issue_date: getDate(props, '발행일'),
+      valid_until: getDate(props, '유효기간'),
+      status: getStatus(props, '상태'),
+      total_amount,
+      items,
+    }
+  } catch (err) {
+    if (err instanceof APIResponseError && err.code === APIErrorCode.ObjectNotFound) {
+      return null // 존재하지 않는 pageId → 404 처리용
+    }
+    console.error('[notion] getInvoice failed:', pageId, err)
+    return null
+  }
 }
 
-/**
- * slug으로 단건 조회
- * slug은 title 기반이므로 발행된 목록에서 매칭한다.
- */
-export async function getPostBySlug(slug: string): Promise<NotionPost | null> {
-  const posts = await getPosts()
-  return posts.find((p) => p.slug === slug) ?? null
-}
+// 레이어 1: unstable_cache — 요청 간 서버 캐싱 (5분 TTL)
+// 동일 pageId 결과를 서버 메모리에 보관해 Notion API 재호출 방지
+const getCachedInvoice = unstable_cache(fetchInvoiceData, ['invoice'], {
+  revalidate: 300, // 5분
+  tags: ['invoice'],
+})
 
-/**
- * 카테고리별 글 목록 조회
- */
-export async function getPostsByCategory(category: string): Promise<NotionPost[]> {
-  const posts = await getPosts()
-  return posts.filter((p) => p.category === category)
-}
-
-/**
- * 페이지 본문 블록 조회
- * 현재는 flat한 블록 목록만 반환한다. 중첩 블록은 별도 요청이 필요하다.
- */
-export async function getPostContent(pageId: string): Promise<NotionBlock[]> {
-  const response = await notion.blocks.children.list({
-    block_id: pageId,
-  })
-
-  return response.results as NotionBlock[]
-}
+// 레이어 2: React cache() — 렌더 요청 내 deduplication
+// generateMetadata + InvoicePage 두 곳에서 동일 pageId 호출 시 API 1회만 실행
+export const getInvoice = cache(getCachedInvoice)

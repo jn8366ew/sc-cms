@@ -155,3 +155,36 @@ keep-coding-instructions: true
 - 지지하되 솔직하게
 
 **시스템 설계 토론이나 코드 리뷰 중에 미드레벨 개발자를 멘토링하는 스태프 엔지니어**처럼 말한다.
+
+📋 상세 프로젝트 요구사항은 @/docs/PRD.md 참조
+
+---
+
+# Playwright E2E 테스트 지침
+
+- 테스트 파일 위치: `tests/` 디렉터리
+- **실제 Notion API 사용** — mock 금지 (ADR: 실서비스 데이터로 검증)
+- 환경 변수는 `.env.local`에서 자동 로드 (`dotenv` 불필요, `playwright.config.ts`가 처리)
+- `.env.local`에 `NOTION_API_KEY`, `NOTION_DATABASE_ID`, `TEST_INVOICE_ID` 필요
+- `TEST_INVOICE_ID`: 실제 Notion 견적서 페이지 ID (테스트 고정값)
+- 브라우저: Chromium 단일 타겟 (크로스 브라우저 불필요)
+- `npm run dev` 기반 `baseURL: http://localhost:3000`
+
+---
+
+# 프로젝트 디자인 시스템 원칙
+
+- **다크모드 기본**: `html` 태그에 `dark` 클래스 고정. 라이트/다크 토글 없음. 모든 UI 작업 시 `dark:` 클래스를 함께 작성한다.
+- **컬러 팔레트**: Tailwind `zinc` 계열 단일 사용. `gray`, `slate` 등 혼용 금지.
+- **Tailwind 버전**: v4 zero-config (`tailwind.config.ts` 없음). dark variant는 `@custom-variant dark (&:where(.dark, .dark *))` 방식.
+
+---
+
+# 프로젝트 참조 파일
+
+@../AGENTS.md
+@tasks/phase1-skeleton.md
+@tasks/phase2-common-modules.md
+@tasks/phase3-core-features.md
+@tasks/phase4-extra-features.md
+@tasks/phase5-optimize-deploy.md

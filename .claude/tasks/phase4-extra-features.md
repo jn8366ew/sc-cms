@@ -1,48 +1,66 @@
 ---
 phase: 4
-title: 추가 기능 개발
-status: pending
+title: 에러 처리 & 배포
+status: partial
 blockedBy: phase3
 ---
 
-## #10 SearchInput 컴포넌트 및 인메모리 필터링 로직 구현
+## #13 app/not-found.tsx — 커스텀 404
 
-- **상태**: 🔲 pending
-- **의존성**: #8, #9
+- **상태**: ✅ completed (2026-04-10)
+- **의존성**: #5
 - **작업**:
-  - `components/ui/SearchInput.tsx` — controlled input, debounce 300ms
-  - 제목 + 태그 기반 필터링 로직
-  - 검색 결과 0건 Empty State UI
-  - ADR-004 참고: 클라이언트 사이드 인메모리 필터링
+  - "견적서를 찾을 수 없습니다" 메시지
+  - 발행자에게 올바른 링크를 요청하라는 안내
+  - 심플한 디자인 (브랜드 일관성)
 
 ---
 
-## #11 홈 페이지에 검색 기능 통합
+## #14 app/error.tsx — Notion API 폴백 UI
 
-- **상태**: 🔲 pending
-- **의존성**: #10
+- **상태**: ✅ completed (2026-04-10)
+- **의존성**: #5
 - **작업**:
-  - `app/page.tsx`에 SearchInput 인라인 통합
-  - 서버에서 전체 글 목록 수신 → 클라이언트 필터링
-  - `'use client'` 분리 필요 시 클라이언트 컴포넌트 분리
+  - Notion API 호출 실패 시 노출되는 에러 바운더리
+  - "잠시 후 다시 시도해주세요" 메시지
+  - `'use client'` 필수 (error.tsx 규칙)
+  - `unstable_retry` 패턴 적용 (Next.js 16.2.0)
 
 ---
 
-## #12 getPostsByTag 함수 추가 및 /tags/[tag] 페이지 구현
+## #15 lib/notion.ts — try/catch + 콘솔 로깅
 
-- **상태**: 🔲 pending
-- **의존성**: #8, #9
+- **상태**: ✅ completed (2026-04-10)
+- **의존성**: #2
 - **작업**:
-  - `lib/notion.ts`에 `getPostsByTag(tag: string)` 함수 추가
-  - `app/tags/[tag]/page.tsx` 구현 — 태그별 글 목록 표시
-  - PostCard 컴포넌트 활용
+  - `getInvoice()` 함수에 try/catch 추가
+  - Notion API 실패 시 콘솔 에러 로깅 + null 반환 (app/error.tsx로 전파 아님, graceful 처리)
+  - 잘못된 pageId 형식 → 즉시 null 반환 (Notion API 호출 생략)
 
 ---
 
-## #13 글 상세 페이지 TagPill → 태그 페이지 링크 연결
+## #16 Playwright E2E 테스트
+
+- **상태**: ✅ completed (2026-04-15)
+- **의존성**: #12, #13, #14
+- **작업** (Observe → Plan → Write → Execute → Verify):
+  - 유효한 견적서 ID → 조회 페이지 정상 렌더링
+  - PDF 다운로드 버튼 클릭 → 다운로드 이벤트 발생
+  - 없는 ID → 404 페이지 표시
+  - 모바일 뷰포트(375px) 레이아웃 확인
+  - Notion API 실패 시 error.tsx 폴백 표시
+  - **실제 Notion API 대상 (mock 사용 금지, ADR 참고)**
+
+---
+
+## #17 Vercel 배포 & QA
 
 - **상태**: 🔲 pending
-- **의존성**: #12
+- **의존성**: #16
 - **작업**:
-  - `app/posts/[slug]/page.tsx`에서 TagPill 클릭 시 `/tags/[tag]`로 이동
-  - TagPill에 href prop 전달
+  - Vercel 프로젝트 생성 및 GitHub 연동
+  - 환경 변수 설정: `NOTION_API_KEY`, `NOTION_DATABASE_ID`
+  - `next build` 로컬 통과 확인 (이미 통과 확인됨)
+  - Notion Integration이 견적서 DB에 공유되어 있는지 확인
+  - 프로덕션 URL에서 실제 견적서 조회 + PDF 다운로드 최종 확인
+  - ROADMAP.md Section 7 배포 전 체크리스트 전체 확인

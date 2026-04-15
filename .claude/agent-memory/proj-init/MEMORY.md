@@ -1,0 +1,2 @@
+- [Notion Client v5 Breaking Change](project_notionhq_v5_api.md) — databases.query() 제거, search() API로 대체
+- [Next.js 16 params Promise API](project_nextjs16_params.md) — 동적 라우트 params는 await 필요

@@ -4,7 +4,23 @@
       "Bash(npm --version)",
       "Bash(npx --version)",
       "Bash(ls:*)",
-      "Bash(head -50 /c/Users/FAMILY/projs/sc-cms/docs/*)"
+      "Bash(head -50 /c/Users/FAMILY/projs/sc-cms/docs/*)",
+      "Bash(head -5 .claude/agents/*.md)",
+      "Bash(claude agents:*)",
+      "Bash(node:*)",
+      "mcp__shadcn__getComponents",
+      "mcp__shadcn__getComponent",
+      "Bash(npx tsc:*)",
+      "Bash(mv \"C:/Users/FAMILY/projs/sc-cms/.claude/commands/docs/update-roadmap.md\" \"C:/Users/FAMILY/projs/sc-cms/.claude/commands/update-roadmap.md\")",
+      "Bash(rmdir \"C:/Users/FAMILY/projs/sc-cms/.claude/commands/docs\")",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(npm install:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx next:*)",
+      "Bash(PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npx playwright test --reporter=list)",
+      "WebFetch(domain:agents.md)",
+      "Bash(vercel --version)"
     ]
   }
 }
