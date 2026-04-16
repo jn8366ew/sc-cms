@@ -1,7 +1,7 @@
 ---
 phase: 4
 title: 에러 처리 & 배포
-status: partial
+status: completed
 blockedBy: phase3
 ---
 
@@ -55,7 +55,7 @@ blockedBy: phase3
 
 ## #17 Vercel 배포 & QA
 
-- **상태**: 🔲 pending
+- **상태**: ✅ completed (2026-04-16)
 - **의존성**: #16
 - **작업**:
   - Vercel 프로젝트 생성 및 GitHub 연동

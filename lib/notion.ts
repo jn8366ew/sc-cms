@@ -143,3 +143,69 @@ const getCachedInvoice = unstable_cache(fetchInvoiceData, ['invoice'], {
 // 레이어 2: React cache() — 렌더 요청 내 deduplication
 // generateMetadata + InvoicePage 두 곳에서 동일 pageId 호출 시 API 1회만 실행
 export const getInvoice = cache(getCachedInvoice)
+
+// --- Invoices DB 목록 조회 ---
+
+// @notionhq/client v5는 databases.query()를 미지원 (ADR-002 리스크 실현)
+// → Notion REST API 직접 fetch() 호출로 대체
+async function fetchInvoicesData(): Promise<Invoice[]> {
+  const databaseId = process.env.NOTION_DATABASE_ID
+  const apiKey = process.env.NOTION_API_KEY
+  if (!databaseId || !apiKey) return []
+
+  try {
+    const res = await fetch(
+      `https://api.notion.com/v1/databases/${databaseId}/query`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Notion-Version': '2022-06-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sorts: [{ property: '발행일', direction: 'descending' }],
+        }),
+      }
+    )
+
+    if (!res.ok) {
+      console.error('[notion] getInvoices HTTP error:', res.status)
+      return []
+    }
+
+    const data = await res.json()
+    const invoices: Invoice[] = []
+
+    for (const page of data.results ?? []) {
+      if (page.object !== 'page' || !page.properties) continue
+      const props = (page as PageObjectResponse).properties
+
+      // 목록 뷰에서는 items Relation 개별 조회 생략.
+      // total_amount는 Rollup 필드에서 직접 읽는다.
+      const total_amount = getRollupNumber(props, '총금액')
+
+      invoices.push({
+        id: page.id,
+        invoice_number: getTitle(props, '견적서 번호'),
+        client_name: getRichText(props, '거래처명'),
+        issue_date: getDate(props, '발행일'),
+        valid_until: getDate(props, '유효기간'),
+        status: getStatus(props, '상태'),
+        total_amount,
+        items: [], // 목록 뷰에서는 항목 불필요
+      })
+    }
+    return invoices
+  } catch (err) {
+    console.error('[notion] getInvoices failed:', err)
+    return []
+  }
+}
+
+const getCachedInvoices = unstable_cache(fetchInvoicesData, ['invoices'], {
+  revalidate: 300,
+  tags: ['invoice'],
+})
+
+export const getInvoices = cache(getCachedInvoices)

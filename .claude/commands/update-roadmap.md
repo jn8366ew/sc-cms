@@ -4,16 +4,28 @@
 
 ### 1단계 — task 파일 전체 읽기
 
-다음 5개 파일을 모두 읽는다:
-- `.claude/tasks/phase1-skeleton.md`
-- `.claude/tasks/phase2-common-modules.md`
-- `.claude/tasks/phase3-core-features.md`
-- `.claude/tasks/phase4-extra-features.md`
-- `.claude/tasks/phase5-optimize-deploy.md`
+#### `.claude/tasks/` 루트 파일 (현재 진행 중인 Phase)
+
+`tasks/` 루트에 있는 파일을 모두 읽는다:
+- `tasks/phase6-admin-upgrade.md`
+- (이후 추가되는 phase 파일도 동일하게 읽는다)
 
 각 파일에서 다음 정보를 추출한다:
 - frontmatter의 `phase`, `title`, `status`
 - 각 task 항목(## #N ...)의 **상태** 값 (✅ completed / 🔲 pending / 🟡 partial)
+
+#### `.claude/tasks/v1/` 서브폴더 (완료된 Phase 1)
+
+`tasks/v1/` 폴더 내 파일들은 **Phase 1 MVP가 이미 완료된 태스크**들이다.
+- ROADMAP.md에 이미 반영되어 있다면 **읽지 않고 pass**.
+- 특정 태스크 상태 확인이 필요한 경우에만 해당 파일만 선택적으로 읽는다.
+
+v1 파일 목록 (참고용):
+- `tasks/v1/phase1-skeleton.md`
+- `tasks/v1/phase2-common-modules.md`
+- `tasks/v1/phase3-core-features.md`
+- `tasks/v1/phase4-extra-features.md`
+- `tasks/v1/phase5-optimize-deploy.md`
 
 ### 2단계 — ROADMAP.md 읽기
 
@@ -26,7 +38,7 @@
 |---|---|
 | ✅ completed | ✅ |
 | 🔲 pending   | 🔲 |
-| 🟡 partial   | 🟡 완료 → 🟡 |
+| 🟡 partial   | 🟡 |
 
 **Step 전체 상태** (`**상태**: ...` 줄) 집계:
 - 해당 Step의 모든 task가 ✅ → `✅ 완료 (YYYY-MM-DD)`

@@ -1,7 +1,7 @@
 ---
 phase: 5
 title: 성능 최적화 및 통합 배포
-status: pending
+status: partial
 blockedBy: phase3 (#9-#12 코드 완성됨, E2E 검증 후 진행)
 ---
 
@@ -83,7 +83,7 @@ blockedBy: phase3 (#9-#12 코드 완성됨, E2E 검증 후 진행)
 
 ## #17 Vercel 배포
 
-- **상태**: 🔲 pending
+- **상태**: ✅ completed (2026-04-16)
 - **의존성**: #16, #21
 - **작업**:
   - Vercel 프로젝트 생성 + GitHub 연동 (자동 CI/CD)

@@ -172,6 +172,14 @@ keep-coding-instructions: true
 
 ---
 
+# 배포 현황
+
+- **Vercel 배포**: ✅ 완료 (2026-04-16)
+- **프로덕션 환경 변수**: `NOTION_API_KEY`, `NOTION_DATABASE_ID`, `REVALIDATE_SECRET` 설정됨
+- **Phase 2 추가 예정 환경 변수**: `NEXT_PUBLIC_BASE_URL`, `ADMIN_PASSWORD`
+
+---
+
 # 프로젝트 디자인 시스템 원칙
 
 - **다크모드 기본**: `html` 태그에 `dark` 클래스 고정. 라이트/다크 토글 없음. 모든 UI 작업 시 `dark:` 클래스를 함께 작성한다.
@@ -183,8 +191,14 @@ keep-coding-instructions: true
 # 프로젝트 참조 파일
 
 @../AGENTS.md
-@tasks/phase1-skeleton.md
-@tasks/phase2-common-modules.md
-@tasks/phase3-core-features.md
-@tasks/phase4-extra-features.md
-@tasks/phase5-optimize-deploy.md
+
+## Phase 1 (MVP) — 완료
+@tasks/v1/phase1-skeleton.md
+@tasks/v1/phase2-common-modules.md
+@tasks/v1/phase3-core-features.md
+@tasks/v1/phase4-extra-features.md
+@tasks/v1/phase5-optimize-deploy.md
+
+## Phase 2 (고도화) — 진행 예정
+@tasks/phase6-admin-upgrade.md
+@../docs/ROADMAP.md
