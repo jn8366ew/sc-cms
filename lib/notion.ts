@@ -1,9 +1,9 @@
-import { Client, APIResponseError, APIErrorCode } from '@notionhq/client'
-import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 import type { Invoice, InvoiceItem, InvoiceStatus } from '@/types/invoice'
 import { STATUS_MAP } from '@/types/invoice'
-import { cache } from 'react'
+import { APIErrorCode, APIResponseError, Client } from '@notionhq/client'
+import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 import { unstable_cache } from 'next/cache'
+import { cache } from 'react'
 
 const notion = new Client({
   auth: process.env.NOTION_API_KEY,
@@ -41,9 +41,22 @@ function getRollupNumber(props: PageObjectResponse['properties'], key: string): 
   const prop = props[key]
   if (!prop || prop.type !== 'rollup') return 0
   const rollup = prop.rollup
-  // PartialRollupValueResponse는 number | date | array 세 가지
-  if (rollup.type !== 'number' || rollup.number === null) return 0
-  return rollup.number
+  if (rollup.type === 'number') {
+    return rollup.number ?? 0
+  }
+
+  // Formula 필드를 Rollup으로 집계하면 array 응답이 올 수 있다.
+  // 각 원소의 number / formula.number 값을 모두 더해 총합으로 사용한다.
+  if (rollup.type === 'array') {
+    return rollup.array.reduce((sum, item) => {
+      if (item.type === 'number') return sum + (item.number ?? 0)
+      if (item.type === 'formula' && item.formula.type === 'number') {
+        return sum + (item.formula.number ?? 0)
+      }
+      return sum
+    }, 0)
+  }
+  return 0
 }
 
 function getRelationIds(props: PageObjectResponse['properties'], key: string): string[] {
@@ -175,28 +188,35 @@ async function fetchInvoicesData(): Promise<Invoice[]> {
     }
 
     const data = await res.json()
-    const invoices: Invoice[] = []
 
-    for (const page of data.results ?? []) {
-      if (page.object !== 'page' || !page.properties) continue
-      const props = (page as PageObjectResponse).properties
+    const results = await Promise.all(
+      (data.results ?? [])
+        .filter((page: { object: string; properties?: unknown }) =>
+          page.object === 'page' && page.properties
+        )
+        .map(async (page: PageObjectResponse) => {
+          const props = page.properties
 
-      // 목록 뷰에서는 items Relation 개별 조회 생략.
-      // total_amount는 Rollup 필드에서 직접 읽는다.
-      const total_amount = getRollupNumber(props, '총금액')
+          // Rollup '총금액'은 Formula 집계 시 type:'array'를 반환해 0이 나옴 (getInvoice 동일 이슈)
+          // getInvoice()와 동일하게 항목을 직접 조회해 합산한다.
+          const itemIds = getRelationIds(props, '항목')
+          const itemResults = await Promise.all(itemIds.map(fetchInvoiceItem))
+          const items = itemResults.filter((item): item is InvoiceItem => item !== null)
+          const total_amount = items.reduce((sum, item) => sum + item.amount, 0)
 
-      invoices.push({
-        id: page.id,
-        invoice_number: getTitle(props, '견적서 번호'),
-        client_name: getRichText(props, '거래처명'),
-        issue_date: getDate(props, '발행일'),
-        valid_until: getDate(props, '유효기간'),
-        status: getStatus(props, '상태'),
-        total_amount,
-        items: [], // 목록 뷰에서는 항목 불필요
-      })
-    }
-    return invoices
+          return {
+            id: page.id,
+            invoice_number: getTitle(props, '견적서 번호'),
+            client_name: getRichText(props, '거래처명'),
+            issue_date: getDate(props, '발행일'),
+            valid_until: getDate(props, '유효기간'),
+            status: getStatus(props, '상태'),
+            total_amount,
+            items: [],
+          } satisfies Invoice
+        })
+    )
+    return results
   } catch (err) {
     console.error('[notion] getInvoices failed:', err)
     return []

@@ -2,6 +2,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { getInvoice } from '@/lib/notion'
 import { InvoicePDF } from '@/components/pdf/InvoicePDF'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { sendDownloadNotification } from '@/lib/slack'
 
 export async function POST(request: Request) {
   // Vercel: x-forwarded-for 헤더에 실제 클라이언트 IP가 담김
@@ -43,6 +44,12 @@ export async function POST(request: Request) {
   const buffer = await renderToBuffer(<InvoicePDF invoice={invoice} />)
 
   const filename = `invoice-${invoice.invoice_number}.pdf`
+
+  // fire-and-forget — 알림 실패가 PDF 응답을 차단하지 않음
+  void sendDownloadNotification(
+    { invoice_number: invoice.invoice_number, client_name: invoice.client_name, total_amount: invoice.total_amount },
+    ip
+  ).catch(() => {})
 
   // Node.js Buffer는 Web API Response의 BodyInit에 직접 할당 불가 — Uint8Array로 변환
   return new Response(new Uint8Array(buffer), {
